@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Focus Timer</title>
+
+    <style>
+        body{
+            width:250px;
+            font-family:Arial, sans-serif;
+            padding:15px;
+            background:#202124;
+            color:white;
+        }
+
+        h2{
+            text-align:center;
+            margin-bottom:20px;
+        }
+
+        label{
+            display:block;
+            margin-top:10px;
+            margin-bottom:5px;
+        }
+
+        input{
+            width:100%;
+            padding:8px;
+            font-size:16px;
+            box-sizing:border-box;
+        }
+
+        button{
+            width:100%;
+            margin-top:20px;
+            padding:10px;
+            font-size:16px;
+            background:#2196F3;
+            color:white;
+            border:none;
+            cursor:pointer;
+            border-radius:6px;
+        }
+
+        button:hover{
+            background:#1976D2;
+        }
+
+        #status{
+            text-align:center;
+            margin-top:10px;
+            color:lightgreen;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<h2>YouTube Focus</h2>
+
+<label>YouTube Time (minutes)</label>
+<input id="watchTime" type="number" min="1">
+
+<label>Study Time (minutes)</label>
+<input id="studyTime" type="number" min="1">
+<h3>When YouTube is closed</h3>
+
+<label>
+    <input
+        type="radio"
+        name="closeMode"
+        value="continue"
+        checked
+    >
+    Continue timer
+</label>
+
+<br><br>
+
+<label>
+    <input
+        type="radio"
+        name="closeMode"
+        value="pause"
+    >
+    Pause timer
+</label>
+
+<br><br>
+<button id="saveBtn">Save</button>
+
+<p id="status"></p>
+
+<script src="popup.js"></script>
+
+</body>
+</html>
