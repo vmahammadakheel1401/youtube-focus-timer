@@ -49,3 +49,16 @@ edge://extensions/
 ## 📄 License
 
 This project is open-source and available for learning and personal use.
+## 📸 Screenshots
+
+### Popup
+
+![Popup](Screenshots/popup.png)
+
+### Timer Running
+
+![Timer Running](Screenshots/timer-running.png)
+
+### Blocked Page
+
+![Blocked Page](Screenshots/blocked-page.png)
