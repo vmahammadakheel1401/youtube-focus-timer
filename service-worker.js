@@ -30,7 +30,9 @@ async function getData() {
         "pausedRemaining",
         "watchDuration",
         "blockDuration",
-        "closeMode"
+        "closeMode",
+        "timerMode",
+        "endTime"
     ]);
 }
 
@@ -264,7 +266,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     }
 
-    const blockEnds = now() + BLOCK_DURATION;
+    const settings = await getData();
+    const blockMs = (settings.blockDuration || 30) * 60 * 1000;
+    const blockEnds = now() + blockMs;
 
     await saveData({
 
@@ -292,11 +296,7 @@ chrome.runtime.onMessage.addListener(async (msg) => {
 
     chrome.alarms.clear("watchFinished");
 
-    const settings = await chrome.storage.local.get([
-        "watchDuration",
-        "timerMode",
-        "endTime"
-    ]);
+    const settings = await getData();
 
     let end;
 
