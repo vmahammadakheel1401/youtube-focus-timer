@@ -1,11 +1,9 @@
-// Prevent duplicate injection
 if (document.getElementById("yt-focus-timer")) {
     throw new Error("Timer already exists");
 }
 
 const timer = document.createElement("div");
 timer.id = "yt-focus-timer";
-
 timer.style.position = "fixed";
 timer.style.top = "20px";
 timer.style.right = "20px";
@@ -20,7 +18,7 @@ timer.style.minWidth = "180px";
 timer.style.textAlign = "center";
 
 timer.innerHTML = `
-<div style="font-size:16px;margin-bottom:8px;">
+<div id="timerHeader" style="font-size:16px;margin-bottom:8px;cursor:grab;touch-action:none;">
 🎯 YouTube Time
 </div>
 
@@ -35,120 +33,100 @@ margin-bottom:12px;">
 <button id="resetTimer"
 style="
 padding:7px 12px;
-margin-right:8px;
 border:none;
 border-radius:8px;
 cursor:pointer;">
 🔄 Reset
 </button>
-
-<button id="pauseTimer"
-style="
-padding:7px 12px;
-border:none;
-border-radius:8px;
-cursor:pointer;">
-⏸ Pause
-</button>
 `;
 
 document.documentElement.appendChild(timer);
 
-let paused = false;
+const header = document.getElementById("timerHeader");
+let dragOffsetX = 0;
+let dragOffsetY = 0;
 
-// ---------------- Timer ----------------
+function clampPosition(left, top) {
+    return {
+        left: Math.max(0, Math.min(left, window.innerWidth - timer.offsetWidth)),
+        top: Math.max(0, Math.min(top, window.innerHeight - timer.offsetHeight))
+    };
+}
+
+chrome.storage.local.get("timerPosition").then(({ timerPosition }) => {
+    if (!timerPosition || !timer.isConnected) {
+        return;
+    }
+
+    const position = clampPosition(timerPosition.left, timerPosition.top);
+    timer.style.left = `${position.left}px`;
+    timer.style.top = `${position.top}px`;
+    timer.style.right = "auto";
+});
+
+header.addEventListener("pointerdown", (event) => {
+    const rect = timer.getBoundingClientRect();
+    dragOffsetX = event.clientX - rect.left;
+    dragOffsetY = event.clientY - rect.top;
+    header.style.cursor = "grabbing";
+    header.setPointerCapture(event.pointerId);
+});
+
+header.addEventListener("pointermove", (event) => {
+    if (!header.hasPointerCapture(event.pointerId)) {
+        return;
+    }
+
+    const position = clampPosition(
+        event.clientX - dragOffsetX,
+        event.clientY - dragOffsetY
+    );
+    timer.style.left = `${position.left}px`;
+    timer.style.top = `${position.top}px`;
+    timer.style.right = "auto";
+});
+
+header.addEventListener("pointerup", async (event) => {
+    if (!header.hasPointerCapture(event.pointerId)) {
+        return;
+    }
+
+    header.releasePointerCapture(event.pointerId);
+    header.style.cursor = "grab";
+    const rect = timer.getBoundingClientRect();
+    await chrome.storage.local.set({
+        timerPosition: { left: rect.left, top: rect.top }
+    });
+});
+
+window.addEventListener("resize", () => {
+    const rect = timer.getBoundingClientRect();
+    const position = clampPosition(rect.left, rect.top);
+    timer.style.left = `${position.left}px`;
+    timer.style.top = `${position.top}px`;
+    timer.style.right = "auto";
+});
 
 const timerInterval = setInterval(async () => {
+    const data = await chrome.storage.local.get("watchEndsAt");
+    const display = document.getElementById("countdown");
 
-    try {
-
-        const data = await chrome.storage.local.get([
-            "watchEndsAt",
-            "pausedRemaining"
-        ]);
-
-        const display = document.getElementById("countdown");
-
-        if (!display) {
-            clearInterval(timerInterval);
-            return;
-        }
-
-        // Paused
-        if (data.pausedRemaining && !data.watchEndsAt) {
-
-            let left = data.pausedRemaining;
-
-            let m = Math.floor(left / 60000);
-            let s = Math.floor((left % 60000) / 1000);
-
-            display.innerHTML =
-                `${m}:${String(s).padStart(2,"0")}`;
-
-            paused = true;
-            document.getElementById("pauseTimer").innerHTML = "▶ Resume";
-            return;
-        }
-
-        // Running
-        if (data.watchEndsAt) {
-
-            let left = Math.max(
-                0,
-                data.watchEndsAt - Date.now()
-            );
-
-            let m = Math.floor(left / 60000);
-            let s = Math.floor((left % 60000) / 1000);
-
-            display.innerHTML =
-                `${m}:${String(s).padStart(2,"0")}`;
-
-            paused = false;
-            document.getElementById("pauseTimer").innerHTML = "⏸ Pause";
-            return;
-        }
-
-        display.innerHTML = "--:--";
-
-    } catch (e) {
-
+    if (!display) {
         clearInterval(timerInterval);
-
+        return;
     }
 
+    if (data.watchEndsAt) {
+        const left = Math.max(0, data.watchEndsAt - Date.now());
+        const minutes = Math.floor(left / 60000);
+        const seconds = Math.floor((left % 60000) / 1000);
+        display.textContent = `${minutes}:${String(seconds).padStart(2, "0")}`;
+        return;
+    }
+
+    display.textContent = "--:--";
 }, 1000);
 
-// ---------------- Reset ----------------
-
-document
-.getElementById("resetTimer")
-.onclick = () => {
-
-    chrome.runtime.sendMessage({
-        action: "resetTimer"
-    });
-
-};
-
-// ---------------- Pause / Resume ----------------
-
-document
-.getElementById("pauseTimer")
-.onclick = () => {
-
-    if (!paused) {
-
-        chrome.runtime.sendMessage({
-            action: "pauseTimer"
-        });
-
-    } else {
-
-        chrome.runtime.sendMessage({
-            action: "resumeTimer"
-        });
-
-    }
-
-};
+document.getElementById("resetTimer").addEventListener("click", () => {
+    chrome.runtime.sendMessage({ action: "resetTimer" });
+});

@@ -14,7 +14,6 @@ chrome.storage.local.get(
 [
 "watchDuration",
 "blockDuration",
-"closeMode",
 "timerMode",
 "endTime"
 ],
@@ -33,12 +32,6 @@ document.querySelector(
 ).checked=true;
 
 toggleMode(timerMode);
-
-const closeMode=data.closeMode||"continue";
-
-document.querySelector(
-`input[name="closeMode"][value="${closeMode}"]`
-).checked=true;
 
 }
 );
@@ -87,10 +80,6 @@ const timerMode=document.querySelector(
 'input[name="timerMode"]:checked'
 ).value;
 
-const closeMode=document.querySelector(
-'input[name="closeMode"]:checked'
-).value;
-
 chrome.storage.local.set({
 
 watchDuration:watch,
@@ -99,9 +88,7 @@ blockDuration:study,
 
 timerMode:timerMode,
 
-endTime:endTimeInput.value,
-
-closeMode:closeMode
+endTime:endTimeInput.value
 
 },()=>{
 

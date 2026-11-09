@@ -7,8 +7,9 @@ A Chrome and Microsoft Edge extension that helps users stay productive by limiti
 - ⏱️ Custom watch timer
 - 🚫 Automatic blocking after the timer expires
 - 🕒 End-Time Mode (watch until a specific time)
-- ⚙️ Easy-to-use popup interface
-- 🔄 Automatic timer reset
+- ⚙️ Easy-to-use popup interface with configurable watch and study durations
+- 🖱️ Draggable on-page timer that remembers its position
+- ▶️ Watch timer starts when YouTube opens and continues when YouTube is closed
 - 🎓 Designed for students and professionals
 
 ## 🛠️ Built With
